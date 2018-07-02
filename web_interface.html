@@ -1,16 +1,41 @@
 <!DOCTYPE html>
-<html>
-<body>
+<html style="height: 100%">
+<body style="height: 100%; overflow: hidden;">
 
-<h1>Web Browser Control</h1>
-<p>Drag the slider to display the current value.</p>
+<h1>Web Browser Controls</h1>
 
-<div id="slidecontainer">
-  <input type="range" min="-255" max="255" value="0" id="range1">
-  <p>Value: <span id="range1_value"></span></p>
+<!-- horizon -->
+<div style="
+  position: fixed;
+  top: -50%; left: -50%;
+  height: 200%; width: 200%;
+  z-index: -1;
+">
+
+  <div style="
+    width: 100%;
+    height: 100%;
+    background-image: url(/files/horizon.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+    transform: rotate(0deg);
+  ">&nbsp;</div>
+  
 </div>
 
+<!-- steering wheel -->
+<div style="
+  width: 100%;
+  height: 100%;
+  background-image: url(/files/steering_wheel.png);
+  background-repeat: no-repeat;
+  background-size: cover;
+">&nbsp;</div>
+
 <script>
+const ACCEL_G = 9.81;
+const MAX_SPEED = 255;
+
 var slider = document.getElementById("range1");
 var output = document.getElementById("range1_value");
 output.innerHTML = slider.value;
@@ -24,9 +49,16 @@ slider.oninput = function() {
   };
   xhttp.open("GET", "/set_speed?speed=" + slider.value, true);
   xhttp.send();
-}
+};
+
+window.ondevicemotion = function(event) {
+  let rotation = Math.acos( event.accelerationIncludingGravity.y / ACCEL_G );
+
+
+
+};
+
 </script>
 
 </body>
 </html>
-
