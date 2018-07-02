@@ -22,7 +22,7 @@ slider.oninput = function() {
     if (this.readyState == 4 && this.status == 200) {
     }
   };
-  xhttp.open("GET", "http://192.168.2.103:5000/set_speed?speed=" + slider.value, true);
+  xhttp.open("GET", "/set_speed?speed=" + slider.value, true);
   xhttp.send();
 }
 </script>
