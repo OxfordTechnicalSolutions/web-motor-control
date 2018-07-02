@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+	<body>
+
+		<h1>Web Browser Control</h1>
+		<p>Drag the slider to display the current value.</p>
+
+		<div id="slidecontainer">
+			<div>Left wheel</div>
+			<input type="range" min="-255" max="255" value="0" id="rangeL" style="width: 100%;">
+			<p>Value: <span id="rangeL_value"></span></p>
+		</div>
+		<div id="slidecontainer">
+			<div>Right wheel</div>
+			<input type="range" min="-255" max="255" value="0" id="rangeR" style="width: 100%;">
+			<p>Value: <span id="rangeR_value"></span></p>
+		</div>
+	
+		<script>
+var sliderL = document.getElementById("rangeL");
+var outputL = document.getElementById("rangeL_value");
+var sliderR = document.getElementById("rangeR");
+var outputR = document.getElementById("rangeR_value");
+
+outputL.innerHTML = sliderL.value;
+outputR.innerHTML = sliderR.value;
+
+sliderL.oninput = function() {
+	refresh();
+};
+sliderR.oninput = function() {
+	refresh();
+};
+
+function refresh() {
+	outputL.innerHTML = sliderL.value;
+	outputR.innerHTML = sliderR.value;
+
+	var xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+
+		if (this.readyState == 4 && this.status == 200) {
+		}
+	};
+	xhttp.open("GET", `/set_speed?left_speed=${sliderL.value}&right_speed=${sliderR.value}`, true);
+	xhttp.send();
+}
+</script>
+
+	</body>
+</html>
+
+
