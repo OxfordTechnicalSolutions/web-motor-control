@@ -1,5 +1,27 @@
 <!DOCTYPE html>
 <html style="height: 100%">
+<head>
+  <style>
+    button.button-throttle {
+      position: fixed;
+      bottom: 50px; right: 50px;
+      width: 200px;
+      height: 200px;
+      background-color: #CA181C;
+      border-radius: 50%;
+      box-shadow: 3px 7px #999;
+      outline: none;
+      border: none;
+      opacity: 0.7;
+    }
+    button.button-throttle:active {
+      opacity: 0.9;
+      transform: translate3d(2px, 5px, 0);
+      box-shadow: 1px 3px #666;
+    }
+
+  </style>
+</head>
 <body style="height: 100%; overflow: hidden;">
 
 <h1>Web Browser Controls</h1>
@@ -32,6 +54,9 @@
   background-repeat: no-repeat;
   background-size: cover;
 ">&nbsp;</div>
+
+<!-- throttle -->
+<button class="button-throttle">&nbsp;</button>
 
 <script>
 const ACCEL_G = 9.81;
