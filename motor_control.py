@@ -55,7 +55,7 @@ def dc_set_speed(motor, speed):
 @app.route("/")
 def web_interface():
   # html = open("web_interface.html")
-  html = open("web_interface_simple_m3.html")
+  html = open("web_interface_simple.html")
   response = html.read().replace('\n', '')
   html.close()
   try:
