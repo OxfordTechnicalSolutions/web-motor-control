@@ -2,6 +2,9 @@
 <html style="height: 100%">
 <head>
   <style>
+    body { -webkit-touch-callout: none !important; }
+    * { -webkit-user-select: none !important; }
+
     button.button-throttle {
       position: fixed;
       bottom: 50px; right: 50px;
@@ -14,7 +17,7 @@
       border: none;
       opacity: 0.7;
     }
-    button.button-throttle:active {
+    button.button-throttle:active, button.button-throttle.button-active {
       opacity: 0.9;
       transform: translate3d(2px, 5px, 0);
       box-shadow: 1px 3px #666;
@@ -56,15 +59,19 @@
 ">&nbsp;</div>
 
 <!-- throttle -->
-<button class="button-throttle">&nbsp;</button>
+<button id="throttle" class="button-throttle">&nbsp;</button>
 
 <script>
 const ACCEL_G = 9.81;
-const SPEED = 20;
+const SPEED = 40;
+const COMMAND_PERIOD = 100;  /* ms between sending updated speed commands to server */
+const DISPLAY_PERIOD = 100;  /* ms between updating display */
 
 var tilt_ratio = 0;
+var run = false;
 
 var horizon = document.getElementById("horizon");
+var throttle = document.getElementById("throttle");
 var debug   = document.getElementById("debug");
 
 if (debug) debug.innerHTML = "testing...";
@@ -74,17 +81,35 @@ window.ondevicemotion = function(event) {
   tilt_ratio = -event.accelerationIncludingGravity.y / ACCEL_G;
 };
 
+window.addEventListener('touchstart', function(event) {
+  run = true;
+  throttle.classList.add('active');
+});
+
+window.addEventListener('touchend', function(event) {
+  run = false;
+  sendSpendCommand(0, 0);
+  throttle.classList.remove('active');
+});
+
 /* update display */
 setInterval(function() {
   let rotation =  Math.asin( tilt_ratio )/Math.PI*180;
   horizon.style.transform = `rotate(${rotation}deg)`;
-}, 100);
+}, DISPLAY_PERIOD);
 
 /* update rover */
 setInterval(function() {
-  let left_speed =  Math.round( SPEED * (1 + tilt_ratio) );
-  let right_speed = Math.round( SPEED * (1 - tilt_ratio) );
+  if (run === false)
+    return;
 
+  let left_speed =  Math.round( SPEED * (1 + tilt_ratio) );
+  let right_speed = Math.round( SPEED * (1 - 0.5*tilt_ratio) );
+
+  sendSpendCommand(left_speed, right_speed);
+}, COMMAND_PERIOD);
+
+function sendSpendCommand(left_speed, right_speed) {
 	var xhttp = new XMLHttpRequest();
 	xhttp.onreadystatechange = function() {
 
@@ -93,8 +118,7 @@ setInterval(function() {
 	};
 	xhttp.open("GET", `/set_speed?left_speed=${left_speed}&right_speed=${right_speed}`, true);
 	xhttp.send();
-}, 100)
-
+}
 
 </script>
 
