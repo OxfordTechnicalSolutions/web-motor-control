@@ -62,22 +62,23 @@ def web_interface():
     myMotorL.setSpeed(0)
     myMotorR.setSpeed(0)
   except:
-  # TODO: notify user of error nicely
+    # TODO: notify user of error nicely
     pass
   return response
 
 @app.route("/set_speed")
 def set_speed():
 
-  # try:
   left_speed = request.args.get("left_speed")
   right_speed = request.args.get("right_speed")
   print "Received " + str(left_speed) + " " + str(right_speed)
 
-  dc_set_speed(myMotorL, left_speed)
-  dc_set_speed(myMotorR, right_speed)
-  # except:
-  #   return "Error!"
+  try:
+    dc_set_speed(myMotorL, left_speed)
+    dc_set_speed(myMotorR, right_speed)
+  except:
+    # TODO: notify user of error nicely
+    pass
 
   return "Received " + str(left_speed) + " " + str(right_speed)
 
