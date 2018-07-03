@@ -9,9 +9,12 @@ import threading
 
 app = Flask(__name__)
 
-# create empty threads (these will hold the stepper 1 and 2 threads)
-# tL = threading.Thread()
-# tR = threading.Thread()
+# constants
+STOP_ALL_PERIOD = 1.0          # secs from receiving command to stopping motors
+STOP_ALL_PERIOD_CHECK = 0.1    # period for stop all check
+
+# global variables
+lastCommandTicks = time.time()
 
 try:
   mh = Adafruit_MotorHAT(addr=0x60)
@@ -49,18 +52,20 @@ def dc_set_speed(motor, speed):
   motor.run(direction)
   motor.setSpeed(abs(int(speed)))
 
-  # t = threading.Thread(target=dc_worker, args=(motor, direction, speed))
-  # t.start()
-def stop_all():
-  print "stop_all"
-  try:
-    myMotorL.setSpeed(0)
-    myMotorR.setSpeed(0)
-  except:
-    # TODO: notify user of error nicely
-    pass
-
-t_stop_all = threading.Timer(2.0, stop_all)
+def stop_all_check():
+  currentTicks = time.time()
+  
+  if (currentTicks-lastCommandTicks) > STOP_ALL_PERIOD:
+    print "STOP ALL: " + str(currentTicks-lastCommandTicks) + " sec since last command"
+    try:
+      myMotorL.setSpeed(0)
+      myMotorR.setSpeed(0)
+    except:
+      # TODO: notify user of error nicely
+      pass
+  else:
+    # keep checking
+    threading.Timer(STOP_ALL_PERIOD_CHECK, stop_all_check).start()
 
 @app.route("/")
 def web_interface():
@@ -78,8 +83,9 @@ def web_interface():
 
 @app.route("/set_speed")
 def set_speed():
-  if t_stop_all.isAlive():
-    t_stop_all.cancel()
+  global lastCommandTicks
+  lastCommandTicks = time.time()
+  stop_all_check()
 
   left_speed = request.args.get("left_speed")
   right_speed = request.args.get("right_speed")
@@ -91,10 +97,6 @@ def set_speed():
   except:
     # TODO: notify user of error nicely
     pass
-
-  if not t_stop_all.isAlive():
-    print "*** starting timer"
-    t_stop_all.start()
 
   return "Received " + str(left_speed) + " " + str(right_speed)
 
