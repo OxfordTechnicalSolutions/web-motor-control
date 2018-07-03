@@ -63,7 +63,7 @@
 
 <script>
 const ACCEL_G = 9.81;
-const SPEED = 40;
+const SPEED = 50;
 const COMMAND_PERIOD = 100;  /* ms between sending updated speed commands to server */
 const DISPLAY_PERIOD = 100;  /* ms between updating display */
 
@@ -78,7 +78,7 @@ if (debug) debug.innerHTML = "testing...";
 
 window.ondevicemotion = function(event) {
   if (debug) debug.innerHTML = `ondevicemotion: ${tilt_ratio}`;
-  tilt_ratio = -event.accelerationIncludingGravity.y / ACCEL_G;
+  tilt_ratio = event.accelerationIncludingGravity.y / ACCEL_G;
 };
 
 window.addEventListener('touchstart', function(event) {
@@ -103,8 +103,19 @@ setInterval(function() {
   if (run === false)
     return;
 
-  let left_speed =  Math.round( SPEED * (1 + tilt_ratio) );
-  let right_speed = Math.round( SPEED * (1 - 0.5*tilt_ratio) );
+  const GAIN = 1.5;
+
+  let left_speed, right_speed;
+  if (tilt_ratio > 0) {
+    /* left turn */
+    left_speed =  -Math.round( SPEED );
+    right_speed = -Math.round( SPEED * (1 - GAIN*Math.abs(tilt_ratio)) );
+  } else {
+    /* right turn */
+    left_speed =  -Math.round( SPEED * (1 - GAIN*Math.abs(tilt_ratio)) );
+    right_speed = -Math.round( SPEED );
+  }
+
 
   sendSpendCommand(left_speed, right_speed);
 }, COMMAND_PERIOD);
