@@ -4,7 +4,7 @@ from Adafruit_MotorHAT import Adafruit_MotorHAT, Adafruit_DCMotor
 
 import time
 import atexit
-# import threading
+import threading
 # import random
 
 app = Flask(__name__)
@@ -51,6 +51,16 @@ def dc_set_speed(motor, speed):
 
   # t = threading.Thread(target=dc_worker, args=(motor, direction, speed))
   # t.start()
+def stop_all():
+  print "stop_all"
+  try:
+    myMotorL.setSpeed(0)
+    myMotorR.setSpeed(0)
+  except:
+    # TODO: notify user of error nicely
+    pass
+
+t_stop_all = threading.Timer(2.0, stop_all)
 
 @app.route("/")
 def web_interface():
@@ -68,6 +78,8 @@ def web_interface():
 
 @app.route("/set_speed")
 def set_speed():
+  if t_stop_all.isAlive():
+    t_stop_all.cancel()
 
   left_speed = request.args.get("left_speed")
   right_speed = request.args.get("right_speed")
@@ -79,6 +91,10 @@ def set_speed():
   except:
     # TODO: notify user of error nicely
     pass
+
+  if not t_stop_all.isAlive():
+    print "*** starting timer"
+    t_stop_all.start()
 
   return "Received " + str(left_speed) + " " + str(right_speed)
 
