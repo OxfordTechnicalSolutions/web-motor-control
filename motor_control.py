@@ -1,13 +1,17 @@
 from flask import Flask, send_from_directory
 from flask import request
 from Adafruit_MotorHAT import Adafruit_MotorHAT, Adafruit_DCMotor
+from flask_socketio import SocketIO
 
 import time
 import atexit
 import threading
+import json
 # import random
 
 app = Flask(__name__)
+socketio = SocketIO(app)
+
 
 # constants
 STOP_ALL_PERIOD = 1.0          # secs from receiving command to stopping motors
@@ -70,7 +74,7 @@ def stop_all_check():
 @app.route("/")
 def web_interface():
   #html = open("web_interface_simple.html")
-  html = open("web_interface.html")
+  html = open("web_interface_sockets.html")
   response = html.read().replace('\n', '')
   html.close()
   try:
@@ -81,14 +85,16 @@ def web_interface():
     pass
   return response
 
-@app.route("/set_speed")
-def set_speed():
+@socketio.on('set_speed')
+def set_speed(data):
+  #print('received json: ' + str(data))
+
   global lastCommandTicks
   lastCommandTicks = time.time()
   stop_all_check()
 
-  left_speed = request.args.get("left_speed")
-  right_speed = request.args.get("right_speed")
+  left_speed = data['left_speed']
+  right_speed = data['right_speed']
   print "Received " + str(left_speed) + " " + str(right_speed)
 
   try:
@@ -98,13 +104,12 @@ def set_speed():
     # TODO: notify user of error nicely
     pass
 
-  return "Received " + str(left_speed) + " " + str(right_speed)
-
 @app.route('/files/<path:path>')
 def send_file(path):
     return send_from_directory('files', path)
 
 def main():
-  app.run(host= '0.0.0.0')
+  socketio.run(app)
+  # app.run(host= '0.0.0.0')
 
 main()

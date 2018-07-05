@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+  <style>
+    body { -webkit-touch-callout: none !important; }
+    * { -webkit-user-select: none !important; }
+
+    button.button-throttle {
+      position: fixed;
+      bottom: 50px; right: 50px;
+      width: 200px;
+      height: 200px;
+      background-color: #CA181C;
+      border-radius: 50%;
+      box-shadow: 3px 7px #999;
+      outline: none;
+      border: none;
+      opacity: 0.7;
+    }
+    button.button-throttle:active, button.button-throttle.button-active {
+      opacity: 0.9;
+      transform: translate3d(2px, 5px, 0);
+      box-shadow: 1px 3px #666;
+    }
+
+  </style>
+</head>
+<body style="height: 100%; overflow: hidden;">
+
+<h1>OxTS RT-Rover</h1>
+<!-- <div id="debug"></div> -->
+
+<!-- horizon -->
+<div style="
+  position: fixed;
+  top: -50%; left: -50%;
+  height: 200%; width: 200%;
+  z-index: -1;
+">
+
+  <div id="horizon" style="
+    width: 100%;
+    height: 100%;
+    background-image: url(/files/horizon.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+    transform: rotate(0deg);
+  ">&nbsp;</div>
+  
+</div>
+
+<!-- steering wheel -->
+<div style="
+  width: 100%;
+  height: 100%;
+  background-image: url(/files/steering_wheel.png);
+  background-repeat: no-repeat;
+  background-size: cover;
+">&nbsp;</div>
+
+<!-- throttle -->
+<button id="throttle" class="button-throttle">&nbsp;</button>
+
+<script type="text/javascript" src="/files/socket.io.min.js"></script>
+<script type="text/javascript" charset="utf-8">
+
+/* Setup sockets */
+
+var socket = io.connect('http://' + document.domain + ':' + location.port);
+socket.on('connect', function() {
+  console.log('Socket connected')
+});
+
+
+
+const ACCEL_G = 9.81;
+const SPEED = 50;
+const MIN_SPEED = 30;
+const COMMAND_PERIOD = 100;  /* ms between sending updated speed commands to server */
+const DISPLAY_PERIOD = 100;  /* ms between updating display */
+
+var tilt_ratio = 0;
+var run = false;
+
+var horizon = document.getElementById("horizon");
+var throttle = document.getElementById("throttle");
+var debug   = document.getElementById("debug");
+
+if (debug) debug.innerHTML = "testing...";
+
+window.ondevicemotion = function(event) {
+  if (debug) debug.innerHTML = `ondevicemotion: ${tilt_ratio}`;
+  tilt_ratio = event.accelerationIncludingGravity.y / ACCEL_G;
+};
+
+window.addEventListener('touchstart', function(event) {
+  run = true;
+  throttle.classList.add('active');
+});
+
+window.addEventListener('touchend', function(event) {
+  run = false;
+  sendSpendCommand(0, 0);
+  throttle.classList.remove('active');
+});
+
+/* update display */
+setInterval(function() {
+  let rotation =  Math.asin( tilt_ratio )/Math.PI*180;
+  horizon.style.transform = `rotate(${rotation}deg)`;
+}, DISPLAY_PERIOD);
+
+/* update rover */
+setInterval(function() {
+  if (run === false)
+    return;
+
+  const GAIN = 1.0;
+
+  let left_speed, right_speed;
+  if (tilt_ratio < 0) {
+    /* left turn */
+    left_speed =  Math.round( SPEED );
+    right_speed = Math.round( SPEED * (1 - GAIN*Math.abs(tilt_ratio)) );
+    right_speed = Math.min(right_speed, MIN_SPEED);
+  } else {
+    /* right turn */
+    left_speed =  Math.round( SPEED * (1 - GAIN*Math.abs(tilt_ratio)) );
+    left_speed = Math.min(left_speed, MIN_SPEED);
+    right_speed = Math.round( SPEED );
+  }
+
+
+  sendSpendCommand(-left_speed, -right_speed);
+}, COMMAND_PERIOD);
+
+function sendSpendCommand(left_speed, right_speed) {
+  socket.emit('set_speed', { left_speed, right_speed });
+}
+
+</script>
+
+</body>
+</html>
