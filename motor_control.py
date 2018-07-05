@@ -69,7 +69,7 @@ def stop_all_check():
 
 @app.route("/")
 def web_interface():
-  # html = open("web_interface.html")
+  #html = open("web_interface_simple.html")
   html = open("web_interface.html")
   response = html.read().replace('\n', '')
   html.close()
