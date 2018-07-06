@@ -117,10 +117,7 @@ window.addEventListener('touchend', function(event) {
 
 /* update display */
 setInterval(function() {
-  let tilt_ratio_adj_abs = Math.min( Math.abs(tilt_ratio), MIN_SPEED/SPEED );
-  let tilt_ratio_adj = (tilt_ratio<0) ? -tilt_ratio_adj_abs : tilt_ratio_adj_abs;
-
-  let rotation =  Math.asin( tilt_ratio_adj_abs )/Math.PI*180;
+  let rotation =  Math.asin( tilt_ratio )/Math.PI*180;
   horizon.style.transform = `rotate(${rotation}deg)`;
 }, DISPLAY_PERIOD);
 
