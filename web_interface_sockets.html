@@ -28,7 +28,7 @@
 <body style="height: 100%; overflow: hidden;">
 
 <h1>OxTS RT-Rover</h1>
-<!-- <div id="debug"></div> -->
+<div id="debug"></div>
 
 <!-- header -->
 <div style="
@@ -86,10 +86,10 @@ socket.on('connect', function() {
 
 const ACCEL_G = 9.81;
 const SPEED = 50;
-const MIN_SPEED = 30;
+const MIN_SPEED = 20;
 const COMMAND_PERIOD = 100;  /* ms between sending updated speed commands to server */
 const DISPLAY_PERIOD = 100;  /* ms between updating display */
-const GAIN = 1.0;
+const GAIN = 0.7;
 
 var tilt_ratio = 0;
 var run = false;
@@ -101,7 +101,6 @@ var debug   = document.getElementById("debug");
 if (debug) debug.innerHTML = "testing...";
 
 window.ondevicemotion = function(event) {
-  if (debug) debug.innerHTML = `ondevicemotion: ${tilt_ratio}`;
   tilt_ratio = event.accelerationIncludingGravity.y / ACCEL_G;
 };
 
@@ -135,14 +134,15 @@ setInterval(function() {
     /* left turn */
     left_speed =  Math.round( SPEED );
     right_speed = Math.round( SPEED * (1 - GAIN*Math.abs(tilt_ratio)) );
-    right_speed = Math.min(right_speed, MIN_SPEED);
+    right_speed = Math.max(right_speed, MIN_SPEED);
   } else {
     /* right turn */
     left_speed =  Math.round( SPEED * (1 - GAIN*Math.abs(tilt_ratio)) );
-    left_speed = Math.min(left_speed, MIN_SPEED);
+    left_speed = Math.max(left_speed, MIN_SPEED);
     right_speed = Math.round( SPEED );
   }
 
+  if (debug) debug.innerHTML = `tilt_ratio: ${tilt_ratio}  L: ${left_speed} R: ${right_speed}`;
 
   sendSpendCommand(-left_speed, -right_speed);
 }, COMMAND_PERIOD);
