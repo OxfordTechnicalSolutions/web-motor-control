@@ -2,8 +2,11 @@
 <html style="height: 100%">
 <head>
   <style>
+    html, body {margin: 0; height: 100%; overflow: hidden;}
     body { -webkit-touch-callout: none !important; }
     * { -webkit-user-select: none !important; }
+
+    .container { -webkit-overflow-scrolling: touch; }
 
     button.button-throttle {
       position: fixed;
@@ -25,52 +28,54 @@
 
   </style>
 </head>
-<body style="height: 100%; overflow: hidden;">
+<body style="height: 100%; overflow: hidden;" scroll="no">
+<div class="container">
 
-<h1>OxTS RT-Rover</h1>
-<div id="debug"></div>
+  <h1>OxTS RT-Rover</h1>
+  <div id="debug"></div>
 
-<!-- header -->
-<div style="
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%;
-  background-color: #CA181C;
-  padding: 20px;
-">
-  <img src="/files/oxts-logo-white.png" alt="" style="width: 100px;"/>
-</div>
+  <!-- header -->
+  <div style="
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    background-color: #CA181C;
+    padding: 20px;
+  ">
+    <img src="/files/oxts-logo-white.png" alt="" style="width: 100px;"/>
+  </div>
 
-<!-- horizon -->
-<div style="
-  position: fixed;
-  top: -50%; left: -50%;
-  height: 200%; width: 200%;
-  z-index: -1;
-">
+  <!-- horizon -->
+  <div style="
+    position: fixed;
+    top: -50%; left: -50%;
+    height: 200%; width: 200%;
+    z-index: -1;
+  ">
 
-  <div id="horizon" style="
+    <div id="horizon" style="
+      width: 100%;
+      height: 100%;
+      background-image: url(/files/horizon.png);
+      background-repeat: no-repeat;
+      background-size: cover;
+      transform: rotate(0deg);
+    ">&nbsp;</div>
+    
+  </div>
+
+  <!-- steering wheel -->
+  <div style="
     width: 100%;
     height: 100%;
-    background-image: url(/files/horizon.png);
+    background-image: url(/files/steering_wheel.png);
     background-repeat: no-repeat;
     background-size: cover;
-    transform: rotate(0deg);
   ">&nbsp;</div>
-  
+
+  <!-- throttle -->
+  <button id="throttle" class="button-throttle">&nbsp;</button>
 </div>
-
-<!-- steering wheel -->
-<div style="
-  width: 100%;
-  height: 100%;
-  background-image: url(/files/steering_wheel.png);
-  background-repeat: no-repeat;
-  background-size: cover;
-">&nbsp;</div>
-
-<!-- throttle -->
-<button id="throttle" class="button-throttle">&nbsp;</button>
 
 <script type="text/javascript" src="/files/socket.io.min.js"></script>
 <script type="text/javascript" charset="utf-8">
