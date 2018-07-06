@@ -7,7 +7,7 @@
 
     button.button-throttle {
       position: fixed;
-      bottom: 50px; right: 50px;
+      bottom: 100px; right: 50px;
       width: 200px;
       height: 200px;
       background-color: #CA181C;
@@ -89,9 +89,12 @@ const SPEED = 50;
 const MIN_SPEED = 20;
 const COMMAND_PERIOD = 100;  /* ms between sending updated speed commands to server */
 const DISPLAY_PERIOD = 100;  /* ms between updating display */
-const GAIN = 0.7;
+const GAIN_TURN = 0.7;
+const THROTTLE_PIXELS = 100;   /* 100 px for full throttle */
+
 
 var tilt_ratio = 0;
+var throttle_input_frac = 0;
 var run = false;
 
 var horizon = document.getElementById("horizon");
@@ -104,12 +107,46 @@ window.ondevicemotion = function(event) {
   tilt_ratio = event.accelerationIncludingGravity.y / ACCEL_G;
 };
 
+function getRelevantTouch(changedTouches) {
+  return changedTouches[0];   /* Just use the first touch wherever it is */
+
+  /*
+  for (var i=0; i < event.changedTouches.length; i++) {
+    t = event.changedTouches[i];
+    if (t.target.id == "throttle") {
+      return t
+    }
+  }
+  */
+}
+
+let touchstart_clientX = null;
+let touchstart_clientY = null;
+
 window.addEventListener('touchstart', function(event) {
-  run = true;
+  t = getRelevantTouch(event.changedTouches);
+  if (!t) return;
+
+  run = false;
+  touchstart_clientX = t.clientX;
+  touchstart_clientY = t.clientY;
   throttle.classList.add('active');
 });
 
+window.addEventListener('touchmove', function(event) {
+  t = getRelevantTouch(event.changedTouches);
+  if (!t) return;
+
+  throttle_input_frac = -(t.clientY-touchstart_clientY) / THROTTLE_PIXELS;
+  throttle_input_frac = (throttle_input_frac>0) ? Math.min(throttle_input_frac, 1) : Math.max(throttle_input_frac, -1);
+
+  throttle.style.bottom = `${Math.round(100+throttle_input_frac*THROTTLE_PIXELS)}px`;
+});
+
 window.addEventListener('touchend', function(event) {
+  t = getRelevantTouch(event.changedTouches);
+  if (!t) return;
+
   run = false;
   sendSpendCommand(0, 0);
   throttle.classList.remove('active');
@@ -130,18 +167,18 @@ setInterval(function() {
   if (tilt_ratio < 0) {
     /* left turn */
     left_speed =  Math.round( SPEED );
-    right_speed = Math.round( SPEED * (1 - GAIN*Math.abs(tilt_ratio)) );
+    right_speed = Math.round( SPEED * (1 - GAIN_TURN*Math.abs(tilt_ratio)) );
     right_speed = Math.max(right_speed, MIN_SPEED);
   } else {
     /* right turn */
-    left_speed =  Math.round( SPEED * (1 - GAIN*Math.abs(tilt_ratio)) );
+    left_speed =  Math.round( SPEED * (1 - GAIN_TURN*Math.abs(tilt_ratio)) );
     left_speed = Math.max(left_speed, MIN_SPEED);
     right_speed = Math.round( SPEED );
   }
 
   if (debug) debug.innerHTML = `tilt_ratio: ${tilt_ratio}  L: ${left_speed} R: ${right_speed}`;
 
-  sendSpendCommand(-left_speed, -right_speed);
+  sendSpendCommand(-left_speed*throttle_input_frac, -right_speed*throttle_input_frac);
 }, COMMAND_PERIOD);
 
 function sendSpendCommand(left_speed, right_speed) {
