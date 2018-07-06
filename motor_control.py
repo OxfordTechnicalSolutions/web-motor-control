@@ -73,7 +73,6 @@ def stop_all_check():
 
 @app.route("/")
 def web_interface():
-  #html = open("web_interface_simple.html")
   html = open("web_interface_sockets.html")
   response = html.read().replace('\n', '')
   html.close()
@@ -109,7 +108,7 @@ def send_file(path):
     return send_from_directory('files', path)
 
 def main():
-  socketio.run(app)
+  socketio.run(app, host='0.0.0.0')
   # app.run(host= '0.0.0.0')
 
 main()
